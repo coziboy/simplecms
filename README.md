@@ -30,3 +30,8 @@ Simple CMS is written by me and some help from:
 * jBBCode
 
   For PHP BBCode Parser
+
+# Having trouble?
+Contact me at:
+* FB : http://fb.me/coziboy
+* Email : eas.coziboy@gmail.com
