@@ -1,0 +1,32 @@
+<IfModule mod_expires.c>
+# Enable expirations
+ExpiresActive On 
+# Default directive
+ExpiresDefault "access plus 1 month"
+</IfModule>
+# 1 Month for most static assets
+<filesMatch ".(css|jpg|jpeg|png|gif|js|ico)$">
+Header set Cache-Control "max-age=2592000, public"
+Header append Vary: Accept-Encoding
+</filesMatch>
+
+Options +FollowSymLinks
+RewriteEngine On
+
+RewriteBase /
+
+RewriteRule ^(.*)/(.*)/(.*)/(.*)\.html$ read.php?d=$1&m=$2&y=$3&title=$4 [L,QSA]
+RewriteRule ^page/([^/]*)$ index.php?page=$1 [L,QSA]
+RewriteRule ^p/(.*)$ pages.php?q=$1 [L,QSA]
+
+ErrorDocument 404 /404.php
+ErrorDocument 500 /404.php
+ErrorDocument 502 /404.php
+ErrorDocument 503 /404.php
+ErrorDocument 504 /404.php
+
+# secure htaccess file
+<Files .htaccess>
+ order allow,deny
+ deny from all
+</Files>

@@ -1,0 +1,1 @@
+jQuery(document).ready(function(){var pxShow=300;var fadeInTime=400;var fadeOutTime=400;var scrollSpeed=300;jQuery(window).scroll(function(){if(jQuery(window).scrollTop()>=pxShow){jQuery("#go-top").fadeIn(fadeInTime);}else{jQuery("#go-top").fadeOut(fadeOutTime);}});jQuery("#go-top a").click(function(){jQuery("html, body").animate({scrollTop:0},scrollSpeed);return false;});});
