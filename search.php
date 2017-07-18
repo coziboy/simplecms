@@ -6,10 +6,12 @@ require_once './function.php';
 if (isset($_GET['q']) && !empty($_GET['q'])) {
    if (!isset($_REQUEST['page'])) $page = 1;
    else $page          = $_REQUEST['page']; ///make it dyanamic :: page num
-search($_GET['q'], $page);
+   search($_GET['q'], $page);
 }
 if (isset($_GET['tag']) && !empty($_GET['tag'])) {
-   searchTag($_GET['tag']);
+   if (!isset($_REQUEST['page'])) $page = 1;
+   else $page          = $_REQUEST['page']; ///make it dyanamic :: page num
+   searchTag($_GET['tag'], $page);
 }
 	echo '<div id="search-section" class="container">
          <form class="cf" action="/search.php">

@@ -7,14 +7,14 @@ function base($query){
 	return $base;
 }
 function getDir($dir){
-	if (count(array_filter(glob($dir."\[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]_[a-zA-Z0-9]*.txt", GLOB_BRACE), 'is_file')) == 0){
-	$iLoc = $dir.'\\';
+	if (count(array_filter(glob($dir."/[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]_[a-zA-Z0-9]*.txt", GLOB_BRACE), 'is_file')) == 0){
+	$iLoc = $dir.'/';
 	$iFile = '01-07-2016_Hello to you ;).txt';
 	$iMessage = 'Hello to you ;). Thanks for using Simple CMS, a simple CMS as Simple as Blinking your eye ;) ###Note: you can change this content from your Content folder###';
 	file_put_contents($iLoc.$iFile, $iMessage, FILE_APPEND | LOCK_EX);
 	}
 	global $ArrayPostTitle;
-	$list = array_filter(glob($dir."\[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]_[a-zA-Z0-9]*.txt", GLOB_BRACE), 'is_file');
+	$list = array_filter(glob($dir."/[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]_[a-zA-Z0-9]*.txt", GLOB_BRACE), 'is_file');
 	$ArrayPostTitle = array();
 	foreach ($list as $key) {
 		$ArrayPostTitle[] = str_replace(".txt", "", $key);
@@ -27,7 +27,7 @@ function SortByDate($x, $y){
 	global $date;
 	$date = array();
 	foreach ($x as $anu) {
-		$date[] = explode($y, substr($anu, strlen(__DIR__.'\content\\')));
+		$date[] = explode($y, substr($anu, strlen(__DIR__.'/content/')));
 		//$date[] = explode($y, $anu);
 	}
 	return usort($date, "date_sort");
@@ -65,8 +65,8 @@ function IndexContent($date, $page, $totla_pages){
 	$content .= '<div class="dcontent cf"><p>'.$parser->GetAsText().'</p>';
 	$content .= '<div class="post-meta">';
 	$content .= '<p class="dateinfo">'.date('d', strtotime($date[0][0])).'<span class="dmonth">'.date('M', strtotime($date[0][0])).'</span><span class="dyear">'.date('Y', strtotime($date[0][0])).'</span></p>';
-	if (file_exists(__DIR__.'\content\comment\\'.$date[0][0].'_'.$date[0][1].'.txt')) {
-		$comment = substr_count(file_get_contents(__DIR__.'\content\comment\\'.$date[0][0].'_'.$date[0][1].'.txt'), PHP_EOL) + 1;
+	if (file_exists(__DIR__.'/content/comment/'.$date[0][0].'_'.$date[0][1].'.txt')) {
+		$comment = substr_count(file_get_contents(__DIR__.'/content/comment/'.$date[0][0].'_'.$date[0][1].'.txt'), PHP_EOL) + 1;
 		$content .= '<div class="comments"><a href="#" title="comment on...">'.$comment.'</a></div>';
 	}
 	$content .= '</div>';
@@ -92,8 +92,8 @@ function IndexContent($date, $page, $totla_pages){
 		$content .= '<div class="grid8 a-left first" style="padding-right:0;padding-left:82px;"><p style="font-size:100%; font-family:Noticia text, serif;line-height: 30px;">'.$parser->GetAsText().'</p></div>';
 		$content .= '<div class="grid4 a-right" style="padding-left:0; padding-right:54px;">';
 		$content .= '<h3><a href="'.$datetolink.'/'.$titletolink.'.html" style="font-family: Sans-Serif;font-weight: bold;font-size: 22px;line-height: 30px;color: #666666;margin-bottom: 6px;">'.$date[$i][1].'</a></h3><p>'.date('F d, Y', strtotime($date[$i][0])).'</p>';
-		if (file_exists(__DIR__.'\content\comment\\'.$date[$i][0].'_'.$date[$i][1].'.txt')) {
-		$comment = substr_count(file_get_contents(__DIR__.'\content\comment\\'.$date[$i][0].'_'.$date[$i][1].'.txt'), PHP_EOL) + 1;
+		if (file_exists(__DIR__.'/content/comment/'.$date[$i][0].'_'.$date[$i][1].'.txt')) {
+		$comment = substr_count(file_get_contents(__DIR__.'/content/comment/'.$date[$i][0].'_'.$date[$i][1].'.txt'), PHP_EOL) + 1;
 		$content .= '<div class="comments"><a href="#" title="comment on...">'.$comment.'</a></div>';
 		}
 		$content .= '</div>';
@@ -238,21 +238,22 @@ function search($query, $page){
     $parser->addCodeDefinitionSet(new JBBCode\DefaultCodeDefinitionSet());
 	$content = '<div id="content" class="container">';
 	$content .= '<div id="main" class="grid12 first"><article>';
-	$list = array_filter(glob(__DIR__."\content\[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]_[a-zA-Z0-9]*.txt", GLOB_BRACE), 'is_file');
+	$list = array_filter(glob(__DIR__."/content/[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]_[a-zA-Z0-9]*.txt", GLOB_BRACE), 'is_file');
 	$p = 0;
 	$datesort = array();
 	foreach ($list as $sumpages) {
-		if(stristr(file_get_contents($sumpages), $query) == true){
-			$datesort[] = explode('_', substr($sumpages, strlen(__DIR__.'\content\\')));
+		if(stristr(file_get_contents($sumpages), $query) !== false){
+			$datesort[] = explode('_', substr($sumpages, strlen(__DIR__.'/content/')));
 			$p++;
 		}
 	}
 	usort($datesort, "date_sort");
-	$record_count  = CONTENT;
-	$totalpages   = ceil($p/$record_count);
-	$offset        = ($page-1)*$record_count;
-	$datesort  = array_slice($datesort, $offset,$record_count);
-	$found = array();
+	if ($p > 0) {
+		$record_count  = CONTENT;
+		$totalpages   = ceil($p/$record_count);
+		$offset        = ($page-1)*$record_count;
+		$datesort  = array_slice($datesort, $offset,$record_count);
+	}
 	$i = 0;
 	foreach ($datesort as $filename => $value) {
 		$fli = file_get_contents('./content/'.$value[0].'_'.$value[1]);
@@ -274,49 +275,66 @@ function search($query, $page){
 		    	$content .='<p>'.$parser->GetAsText().'</p>';
 		    	$i++;
 		    }
-		//}
 	}
 	if ($i == 0) $content .= "<h5>0 article found</h5>";
 	if ($i !== 0) $content .= "<h5>".$i." Article found</h5>";
 	$content .= '</article></div></div>';
 	echo $content;
-	pagination($page, $totalpages, '/search.php?q='.$query.'&page=');
+	if ($p > 0) {
+		pagination($page, $totalpages, '/search.php?q='.$query.'&page=');
+	}
 }
 
-function searchTag($query){
+function searchTag($query, $page){
 	$content = '<div id="content" class="container">';
 	$content .= '<div id="main" class="grid12 first"><article>';
-	$list = array_filter(glob(__DIR__."\content\[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]_[a-zA-Z0-9]*.txt", GLOB_BRACE), 'is_file');
-	$found = array();
-	foreach ($list as $key) {
-		$found[] = substr($key, strlen(__DIR__.'\content\\'));
+	$list = array_filter(glob(__DIR__."/content/[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]_[a-zA-Z0-9]*.txt", GLOB_BRACE), 'is_file');
+	$p = 0;
+	$datesort = array();
+	foreach ($list as $sumpages) {
+		if(stristr(file($sumpages)[1], $query) !== false){
+			$datesort[] = explode('_', substr($sumpages, strlen(__DIR__.'/content/')));
+			$p++;
+		}
+	}
+	usort($datesort, "date_sort");
+	if ($p > 0) {
+		$record_count  = CONTENT;
+		$totalpages   = ceil($p/$record_count);
+		$offset        = ($page-1)*$record_count;
+		$datesort  = array_slice($datesort, $offset,$record_count);
 	}
 	$i = 0;
-	foreach ($found as $filename) {
+	foreach ($datesort as $filename => $value) {
 		$parser = new JBBCode\Parser();
     	$parser->addCodeDefinitionSet(new JBBCode\DefaultCodeDefinitionSet());
-		$fli = file(__DIR__.'\content\\'.$filename);
-		$match = stristr($fli[1], $query);
-		if($match!==false){
-			$split = explode('_', $filename);
-		    	$date = $split[0];
-		    	$title = str_replace('.txt', '', $split[1]);
-		    	$datetolink = str_replace("-", "/", $date);
-		    	$titletolink = str_replace(" ", "-", $title);
-		    	$content .= '<h4><a href="'.$datetolink.'/'.$titletolink.'.html" style="color:#1e83b6">'.$title.'</a></h4>';
-		    	$content .= '<p class="post-info">by <span><a href="'.BASEURL.'">'.NAME.'</a></span>, '.date("F d, Y",strtotime($date)).'</p>';
-		    	$readmore = '... <a href="'.$datetolink.'/'.$titletolink.'.html" style="color:#1e83b6">(continue reading)</a>';
-		    	unset($fli[0], $fli[1], $fli[2]);
-		    	$match = cut::truncate(implode('', $fli), 150, $readmore, true);
-		    	$parser->parse($match);
-		    	$content .='<p>'.$parser->GetAsText().'</p>';
-		    	$i++;
+		$fli = file(__DIR__.'/content/'.$value[0].'_'.$value[1]);
+		if (count($fli) > 3 && trim($fli[0]) == '---' && trim($fli[2]) == '---') {
+			$match = stristr($fli[1], $query);
+			if($match!==false){
+				$split = explode('_', $filename);
+			    	$date = $value[0];
+			    	$title = str_replace('.txt', '', $value[1]);
+			    	$datetolink = str_replace("-", "/", $date);
+			    	$titletolink = str_replace(" ", "-", $title);
+			    	$content .= '<h4><a href="'.$datetolink.'/'.$titletolink.'.html" style="color:#1e83b6">'.$title.'</a></h4>';
+			    	$content .= '<p class="post-info">by <span><a href="'.BASEURL.'">'.NAME.'</a></span>, '.date("F d, Y",strtotime($date)).'</p>';
+			    	$readmore = '... <a href="'.$datetolink.'/'.$titletolink.'.html" style="color:#1e83b6">(continue reading)</a>';
+			    	unset($fli[0], $fli[1], $fli[2]);
+			    	$match = cut::truncate(implode('', $fli), 150, $readmore, true);
+			    	$parser->parse($match);
+			    	$content .='<p>'.$parser->GetAsText().'</p>';
+			    	$i++;
+			}
 		}
 	}
 	if ($i == 0) $content .= "<h5>0 article under \"".$query."\" category</h5>";
 	if ($i !== 0) $content .= "<h5>".$i." Article found under \"".$query."\" category</h5>";
 	$content .= '</article></div></div>';
 	echo $content;
+	if ($p > 0) {
+		pagination($page, $totalpages, '/search.php?tag='.$query.'&page=');
+	}
 }
 
 class cut{

@@ -6,7 +6,7 @@ require_once './function.php';
 /*                latest article
 ==================================================*/
 
-$content = getDir(__DIR__."\content");
+$content = getDir(__DIR__."/content");
 SortByDate($content, "_");
 
 $record_count  = CONTENT;
