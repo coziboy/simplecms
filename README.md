@@ -24,7 +24,7 @@
 
 # Credit
 Simple CMS is written by me and some help from:
-* [Styleshout](www.styleshout.com)
+* [Styleshout](http://www.styleshout.com)
 
   For Simple CMS Template 
 * [BBCodeParser](https://github.com/golonka/BBCodeParser)
