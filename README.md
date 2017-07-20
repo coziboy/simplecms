@@ -24,10 +24,10 @@
 
 # Credit
 Simple CMS is written by me and some help from:
-* Styleshout
+* [Styleshout](www.styleshout.com)
 
   For Simple CMS Template 
-* jBBCode
+* [BBCodeParser](https://github.com/golonka/BBCodeParser)
 
   For PHP BBCode Parser
 

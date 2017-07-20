@@ -1,6 +1,7 @@
 <?php
 require_once "./config.php";
-require_once "./script/bbcode/Parser.php";
+require_once './script/BBCodeParser/vendor/autoload.php';
+
 //Get Content
 function base($query){
 	$base = substr(__DIR__.'\\'.$query, strlen(__DIR__));
@@ -39,8 +40,7 @@ function SortByDate($x, $y){
 //Post to index
 function IndexContent($date, $page, $totla_pages){
 	$file = file('./content/'.$date[0][0]."_".$date[0][1].".txt", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-  	$parser = new JBBCode\Parser();
-    $parser->addCodeDefinitionSet(new JBBCode\DefaultCodeDefinitionSet());
+	$parser = new Golonka\BBCode\BBCodeParser;
 	//First article
 	$datetolink = str_replace("-", "/", $date[0][0]);
 	//$datetolink = substr($datetolink, strlen(__DIR__.'\content\\'));
@@ -48,7 +48,6 @@ function IndexContent($date, $page, $totla_pages){
     $isi = IsiContent($date[0][0]."_".$date[0][1].".txt");
 	$readmore = '... <p class="continue cf"><a class="button" href="'.$datetolink.'/'.$titletolink.'.html">Continue Reading</a>';
 	$isi = cut::truncate($isi, 500, $readmore, true);
-	$parser->parse($isi);
 	$content = '<article id="latest-article" class="container">';
 	$content .= '<h2><a href="'.$datetolink.'/'.$titletolink.'.html">'.$date[0][1].'</a></h2>';
 	$content .= '<p class="post-info">by <span><a href="#">'.NAME.'</a></span>';
@@ -62,7 +61,7 @@ function IndexContent($date, $page, $totla_pages){
 		$content .= implode(', ', $tag);
 	}
 	$content .= '</p>';
-	$content .= '<div class="dcontent cf"><p>'.$parser->GetAsText().'</p>';
+	$content .= '<div class="dcontent cf"><p>'.$parser->stripBBCodeTags($isi).'</p>';
 	$content .= '<div class="post-meta">';
 	$content .= '<p class="dateinfo">'.date('d', strtotime($date[0][0])).'<span class="dmonth">'.date('M', strtotime($date[0][0])).'</span><span class="dyear">'.date('Y', strtotime($date[0][0])).'</span></p>';
 	if (file_exists(__DIR__.'/content/comment/'.$date[0][0].'_'.$date[0][1].'.txt')) {
@@ -86,10 +85,9 @@ function IndexContent($date, $page, $totla_pages){
     	//$date[$i][0] = substr($date[$i][0], strlen(__DIR__.'\content\\'));
     	$readmore = '... <a href="'.$datetolink.'/'.$titletolink.'.html">Continue Reading</a>';
 		$isi = cut::truncate($isi, 500, $readmore, true);
-		$parser->parse($isi);
 
 		$content .= '<article class="cf">';
-		$content .= '<div class="grid8 a-left first" style="padding-right:0;padding-left:82px;"><p style="font-size:100%; font-family:Noticia text, serif;line-height: 30px;">'.$parser->GetAsText().'</p></div>';
+		$content .= '<div class="grid8 a-left first" style="padding-right:0;padding-left:82px;"><p style="font-size:100%; font-family:Noticia text, serif;line-height: 30px;">'.$parser->stripBBCodeTags($isi).'</p></div>';
 		$content .= '<div class="grid4 a-right" style="padding-left:0; padding-right:54px;">';
 		$content .= '<h3><a href="'.$datetolink.'/'.$titletolink.'.html" style="font-family: Sans-Serif;font-weight: bold;font-size: 22px;line-height: 30px;color: #666666;margin-bottom: 6px;">'.$date[$i][1].'</a></h3><p>'.date('F d, Y', strtotime($date[$i][0])).'</p>';
 		if (file_exists(__DIR__.'/content/comment/'.$date[$i][0].'_'.$date[$i][1].'.txt')) {
@@ -234,8 +232,7 @@ function IsiContent($dir){
 }
 
 function search($query, $page){
-	$parser = new JBBCode\Parser();
-    $parser->addCodeDefinitionSet(new JBBCode\DefaultCodeDefinitionSet());
+	$parser = new Golonka\BBCode\BBCodeParser;
 	$content = '<div id="content" class="container">';
 	$content .= '<div id="main" class="grid12 first"><article>';
 	$list = array_filter(glob(__DIR__."/content/[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]_[a-zA-Z0-9]*.txt", GLOB_BRACE), 'is_file');
@@ -260,7 +257,7 @@ function search($query, $page){
 		$lines = explode("\n", $fli);
 		if (count($lines) > 3 && trim($lines[0]) == '---' && trim($lines[2]) == '---') $fli = implode("\n", array_slice($lines, 2));
 		else $fli = implode("\n", $lines);
-			$match = stristr($fli, $query);
+			$match = stristr($parser->stripBBCodeTags($fli), $query);
 		    if($match!==false){
 		    	$date = $value[0];
 		    	$title = str_replace('.txt', '', $value[1]);
@@ -271,8 +268,7 @@ function search($query, $page){
 		    	$match = preg_replace('/'.$query.'/i', '<span style="background-color:#FFFF00">'.$query.'</span>', $match, 1);
 		    	$readmore = '... <a href="'.$datetolink.'/'.$titletolink.'.html" style="color:#1e83b6">(continue reading)</a>';
 		    	$match = cut::truncate($match, 150, $readmore, true);
-		    	$parser->parse($match);
-		    	$content .='<p>'.$parser->GetAsText().'</p>';
+		    	$content .='<p>'.$parser->parse($match).'</p>';
 		    	$i++;
 		    }
 	}
@@ -292,9 +288,11 @@ function searchTag($query, $page){
 	$p = 0;
 	$datesort = array();
 	foreach ($list as $sumpages) {
-		if(stristr(file($sumpages)[1], $query) !== false){
-			$datesort[] = explode('_', substr($sumpages, strlen(__DIR__.'/content/')));
-			$p++;
+		if (count(file($sumpages)) > 3 && trim(file($sumpages)[0]) == '---' && trim(file($sumpages)[2]) == '---' ){
+			if(stristr(file($sumpages)[1], $query) !== false){
+				$datesort[] = explode('_', substr($sumpages, strlen(__DIR__.'/content/')));
+				$p++;
+			}
 		}
 	}
 	usort($datesort, "date_sort");
@@ -306,8 +304,7 @@ function searchTag($query, $page){
 	}
 	$i = 0;
 	foreach ($datesort as $filename => $value) {
-		$parser = new JBBCode\Parser();
-    	$parser->addCodeDefinitionSet(new JBBCode\DefaultCodeDefinitionSet());
+		$parser = new Golonka\BBCode\BBCodeParser;
 		$fli = file(__DIR__.'/content/'.$value[0].'_'.$value[1]);
 		if (count($fli) > 3 && trim($fli[0]) == '---' && trim($fli[2]) == '---') {
 			$match = stristr($fli[1], $query);
@@ -322,8 +319,7 @@ function searchTag($query, $page){
 			    	$readmore = '... <a href="'.$datetolink.'/'.$titletolink.'.html" style="color:#1e83b6">(continue reading)</a>';
 			    	unset($fli[0], $fli[1], $fli[2]);
 			    	$match = cut::truncate(implode('', $fli), 150, $readmore, true);
-			    	$parser->parse($match);
-			    	$content .='<p>'.$parser->GetAsText().'</p>';
+			    	$content .='<p>'.$parser->parse($match).'</p>';
 			    	$i++;
 			}
 		}
